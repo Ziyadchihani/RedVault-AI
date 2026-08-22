@@ -4,5 +4,6 @@ python-dotenv
 chromadb
 sentence-transformers
 pypdf
+PyMuPDF
 google-genai
 python-multipart
