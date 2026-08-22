@@ -1,4 +1,4 @@
-from app.rag.embeddings import model
+from app.rag.embeddings import create_embeddings
 from app.rag.vector_store import collection
 
 
@@ -8,7 +8,7 @@ def retrieve_documents(query: str, n_results: int = 5):
     """
 
     # Convert the question into an embedding
-    query_embedding = model.encode([query])
+    query_embedding = create_embeddings([query])
 
     # Search the vector database
     results = collection.query(
