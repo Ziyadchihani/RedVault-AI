@@ -1,0 +1,1187 @@
+REDVAULT AI — COMPLETE CODE EXPLANATION
+========================================
+
+1. MAIN IDEA
+------------
+
+RedVault AI is a RAG (Retrieval-Augmented Generation) application.
+
+The user uploads a PDF and then asks questions about that PDF.
+
+The complete flow is:
+
+User
+ ↓
+React Frontend
+ ↓
+FastAPI
+ ↓
+Upload API
+ ↓
+Upload Service
+ ↓
+Extract PDF Text
+ ↓
+Chunking
+ ↓
+Embeddings
+ ↓
+ChromaDB
+ ↓
+User asks a question
+ ↓
+Question Embedding
+ ↓
+ChromaDB Retrieval
+ ↓
+Relevant Chunks
+ ↓
+Gemini
+ ↓
+Generated Answer
+ ↓
+React Frontend
+ ↓
+User
+
+
+2. main.py
+----------
+
+main.py creates the FastAPI application.
+
+Example:
+
+from fastapi import FastAPI
+
+from app.api.upload import router as upload_router
+from app.api.chat import router as chat_router
+
+app = FastAPI(title="RedVault AI")
+
+app.include_router(upload_router)
+app.include_router(chat_router)
+
+
+What happens here?
+
+FastAPI creates the backend server.
+
+The upload router is connected so the backend understands:
+
+POST /upload
+
+The chat router is connected so the backend understands:
+
+POST /chat
+
+The main.py file is therefore the main entry point of the backend.
+
+When we run:
+
+uvicorn app.main:app --reload
+
+Uvicorn loads the app object from main.py and starts FastAPI.
+
+
+3. api/upload.py
+----------------
+
+This file contains the upload endpoint.
+
+Its job is to receive the PDF from the frontend.
+
+The frontend sends:
+
+POST /upload
+
+with the uploaded file.
+
+The endpoint receives an UploadFile object and sends it to:
+
+save_uploaded_file()
+
+from upload_service.py.
+
+The important idea is:
+
+React
+ ↓
+POST /upload
+ ↓
+upload.py
+ ↓
+upload_service.py
+
+
+4. api/chat.py
+--------------
+
+This file contains the chat endpoint.
+
+Its job is to receive the user's question.
+
+For example:
+
+"What experience does Alexander Taylor have?"
+
+The endpoint passes the question to the RAG retrieval process.
+
+The flow is:
+
+Question
+ ↓
+chat.py
+ ↓
+retrieval
+ ↓
+ChromaDB
+ ↓
+Relevant chunks
+ ↓
+Gemini
+ ↓
+Answer
+
+The final answer is returned to React as JSON.
+
+
+5. services/upload_service.py
+-----------------------------
+
+This file handles uploaded files.
+
+It checks the file extension.
+
+For example:
+
+ALLOWED_EXTENSIONS = {".pdf", ".docx"}
+
+If the file is not allowed, FastAPI returns an error.
+
+For example:
+
+Only PDF and DOCX files are allowed.
+
+After validation, the file is saved into:
+
+uploads/
+
+For example:
+
+uploads/Alexander_Taylor.pdf
+
+After saving the PDF, the service starts processing it.
+
+The PDF goes to:
+
+extract_text_from_pdf()
+
+Then the extracted text goes to:
+
+split_text()
+
+Then the chunks go to:
+
+create_embeddings()
+
+Then the embeddings and chunks are stored in ChromaDB.
+
+Therefore upload_service.py controls the beginning of the RAG pipeline.
+
+
+6. services/document_service.py
+--------------------------------
+
+This file extracts text from the PDF.
+
+The PDF itself contains pages and formatted information.
+
+The system needs plain text so that it can process it.
+
+For example:
+
+PDF:
+
+Alexander Taylor
+Lead Data Scientist
+9 years of experience...
+
+becomes:
+
+"ALEXANDER TAYLOR
+Lead Data Scientist
+9 years of experience..."
+
+The function:
+
+extract_text_from_pdf(file_path)
+
+reads the PDF and returns the extracted text.
+
+The important idea is:
+
+PDF
+ ↓
+Text
+
+
+7. rag/pipeline.py
+------------------
+
+pipeline.py connects the main RAG processing steps together.
+
+The code is approximately:
+
+from app.services.document_service import extract_text_from_pdf
+from app.rag.chunking import split_text
+from app.rag.embeddings import create_embeddings
+from app.rag.vector_store import store_embeddings, count_documents
+
+
+def process_document(file_path):
+
+    text = extract_text_from_pdf(file_path)
+
+    chunks = split_text(text)
+
+    embeddings = create_embeddings(chunks)
+
+    store_embeddings(chunks, embeddings)
+
+    return {
+        "chunks": len(chunks),
+        "embedding_shape": embeddings.shape,
+        "documents_in_db": count_documents()
+    }
+
+
+The important thing is that pipeline.py does not need to contain all the implementation.
+
+It simply connects the functions.
+
+The process is:
+
+Step 1:
+Extract text.
+
+Step 2:
+Split text into chunks.
+
+Step 3:
+Create embeddings.
+
+Step 4:
+Store embeddings in ChromaDB.
+
+This is why pipeline.py can be considered the coordinator of the document-processing pipeline.
+
+
+8. rag/chunking.py
+------------------
+
+chunking.py splits the large extracted text into smaller pieces.
+
+Why?
+
+Because we do not want to treat the entire PDF as one huge piece of text.
+
+For example:
+
+Full PDF
+ ↓
+Chunk 1
+Chunk 2
+Chunk 3
+Chunk 4
+...
+Chunk 8
+
+In our Alexander Taylor PDF, we got:
+
+Chunks created: 8
+
+Each chunk contains a smaller section of the PDF.
+
+The chunks are important because later ChromaDB can search for the chunks that are most relevant to the user's question.
+
+The basic flow is:
+
+text
+ ↓
+split_text(text)
+ ↓
+chunks
+
+
+9. rag/embeddings.py
+--------------------
+
+This file converts text into embeddings.
+
+An embedding is a numerical representation of the meaning of text.
+
+For example:
+
+"Alexander is a Data Scientist"
+
+can become something like:
+
+[0.12, -0.31, 0.72, 0.44, ...]
+
+The actual vector contains many numbers.
+
+In our project, each embedding has 384 dimensions.
+
+We saw:
+
+Embedding shape: (8, 384)
+
+This means:
+
+8 chunks
+and
+384 numbers for each chunk.
+
+Why do we need embeddings?
+
+Because normal keyword search is not enough.
+
+We want semantic search.
+
+For example:
+
+Question:
+
+"What jobs has Alexander done?"
+
+The document might say:
+
+"Data Scientist"
+
+Even though the exact words "jobs has Alexander done" do not appear in the PDF, the embedding allows the system to understand that these concepts are related.
+
+
+10. rag/vector_store.py
+-----------------------
+
+This file manages ChromaDB.
+
+ChromaDB is our vector database.
+
+It stores:
+
+Chunk text
++
+Embedding
+
+For example:
+
+Chunk 1
+ ↓
+Embedding 1
+
+Chunk 2
+ ↓
+Embedding 2
+
+Chunk 3
+ ↓
+Embedding 3
+
+...
+
+When the question comes later, ChromaDB can search the stored vectors.
+
+We tested this successfully and got:
+
+Vectors in DB: 8
+
+This means the 8 chunks were successfully stored as vectors.
+
+
+11. rag/retrieval.py
+--------------------
+
+retrieval.py is responsible for finding the relevant chunks for a question.
+
+Suppose the user asks:
+
+"What experience does Alexander Taylor have?"
+
+The question is converted into an embedding.
+
+Then that question embedding is compared with the document embeddings in ChromaDB.
+
+ChromaDB finds the most similar chunks.
+
+For example:
+
+Question
+ ↓
+Question embedding
+ ↓
+ChromaDB search
+ ↓
+Chunk 1
+Chunk 4
+Chunk 6
+...
+
+These chunks become the context that will be given to Gemini.
+
+This is the RETRIEVAL part of RAG.
+
+Important:
+
+ChromaDB is not generating the final answer.
+
+It is finding the relevant information.
+
+
+12. llm/gemini_service.py
+-------------------------
+
+This file communicates with Gemini.
+
+Gemini is the Large Language Model.
+
+The RAG system retrieves useful information first.
+
+Then we give Gemini:
+
+1. The user's question
+2. The relevant chunks from the PDF
+
+For example:
+
+Question:
+
+"What experience does Alexander Taylor have?"
+
+Context:
+
+Alexander has 9 years of experience in data science.
+
+He worked as a Data Scientist.
+
+He became a Data Science Team Lead.
+
+Then Gemini generates a natural-language answer.
+
+Gemini's job is therefore:
+
+Context + Question
+ ↓
+Natural language answer
+
+
+This is the GENERATION part of RAG.
+
+Important:
+
+Gemini does not need to search the entire PDF.
+
+Our RAG system already retrieved the relevant information.
+
+Gemini mainly uses that information to formulate the answer.
+
+
+13. Why do we use both ChromaDB and Gemini?
+-------------------------------------------
+
+They have different jobs.
+
+ChromaDB:
+
+FIND THE INFORMATION
+
+Gemini:
+
+EXPLAIN THE INFORMATION
+
+Example:
+
+User:
+"What experience does Alexander have?"
+
+ChromaDB finds:
+
+"9 years in data science."
+
+"Data Scientist at Innovative Data Systems."
+
+"Data Science Team Lead at HealthTech Solutions."
+
+Gemini then turns those pieces into:
+
+"Alexander Taylor has 9 years of experience in data science and has worked as a Data Scientist and Data Science Team Lead..."
+
+Therefore:
+
+ChromaDB = Retrieval
+
+Gemini = Generation
+
+
+14. Complete PDF Upload Flow
+----------------------------
+
+When the user uploads Alexander's PDF:
+
+STEP 1:
+
+React receives the selected PDF.
+
+STEP 2:
+
+React creates FormData.
+
+The PDF is placed inside the FormData object.
+
+STEP 3:
+
+Axios sends:
+
+POST http://127.0.0.1:8000/upload
+
+STEP 4:
+
+FastAPI receives the file through upload.py.
+
+STEP 5:
+
+upload.py calls upload_service.py.
+
+STEP 6:
+
+upload_service.py validates the file.
+
+STEP 7:
+
+The file is saved into:
+
+uploads/
+
+STEP 8:
+
+document_service.py extracts the text.
+
+STEP 9:
+
+chunking.py splits the text.
+
+STEP 10:
+
+embeddings.py converts the chunks into vectors.
+
+STEP 11:
+
+vector_store.py stores the chunks and vectors in ChromaDB.
+
+The result from our test was:
+
+Chunks created: 8
+Embedding shape: (8, 384)
+Vectors in DB: 8
+
+This confirmed that the document-processing pipeline works.
+
+
+15. Complete Question Flow
+--------------------------
+
+Now the user asks:
+
+"What experience does Alexander Taylor have?"
+
+STEP 1:
+
+React gets the question.
+
+STEP 2:
+
+Axios sends:
+
+POST /chat
+
+STEP 3:
+
+FastAPI receives the question through chat.py.
+
+STEP 4:
+
+The question is converted into an embedding.
+
+STEP 5:
+
+ChromaDB searches the document vectors.
+
+STEP 6:
+
+The most relevant chunks are retrieved.
+
+STEP 7:
+
+The question and retrieved chunks are sent to Gemini.
+
+STEP 8:
+
+Gemini generates a natural-language answer.
+
+STEP 9:
+
+FastAPI returns the answer.
+
+STEP 10:
+
+React displays the answer.
+
+The final result looks like:
+
+Question:
+What experience does Alexander Taylor have?
+
+Answer:
+Alexander Taylor has 9 years of experience in data science and has worked as a Data Scientist and Data Science Team Lead...
+
+
+16. frontend/src/App.jsx
+------------------------
+
+App.jsx is the main frontend interface.
+
+It uses React.
+
+Important React concepts used in the file include:
+
+useState
+useRef
+
+useState stores information that changes.
+
+For example:
+
+question
+selectedFile
+uploadStatus
+answer
+
+useRef is used to access the hidden file input.
+
+The user clicks:
+
+Choose PDF
+
+and React triggers the file input.
+
+
+17. File Selection in App.jsx
+-----------------------------
+
+The file input is:
+
+<input
+    type="file"
+    accept=".pdf"
+/>
+
+The user chooses a PDF.
+
+The selected file is stored in:
+
+selectedFile
+
+For example:
+
+selectedFile = Alexander_Taylor.pdf
+
+
+18. Upload in App.jsx
+---------------------
+
+When the user clicks Upload:
+
+handleUpload()
+
+runs.
+
+It checks whether a file was selected.
+
+Then it creates:
+
+FormData
+
+The PDF is added:
+
+formData.append("file", selectedFile)
+
+Then Axios sends the request:
+
+axios.post(
+    "http://127.0.0.1:8000/upload",
+    formData
+)
+
+This connects React to FastAPI.
+
+So:
+
+React
+ ↓
+Axios
+ ↓
+FastAPI /upload
+
+
+19. Chat in App.jsx
+-------------------
+
+The user enters:
+
+"What experience does Alexander Taylor have?"
+
+React stores the question using:
+
+setQuestion()
+
+When the user clicks Send:
+
+React sends the question to:
+
+POST /chat
+
+The backend processes it and returns the answer.
+
+React then stores the answer in its state and displays it.
+
+Therefore:
+
+Question input
+ ↓
+React state
+ ↓
+Axios
+ ↓
+FastAPI
+ ↓
+RAG
+ ↓
+Gemini
+ ↓
+Answer
+ ↓
+React
+
+
+20. Axios
+----------
+
+Axios is the library that allows the React frontend to communicate with the FastAPI backend.
+
+Without Axios, React would not automatically know how to send our HTTP requests.
+
+We use it for:
+
+POST /upload
+
+and:
+
+POST /chat
+
+
+21. main.jsx
+------------
+
+main.jsx starts the React application.
+
+It loads App.jsx and renders it into the HTML page.
+
+The basic relationship is:
+
+main.jsx
+ ↓
+App.jsx
+ ↓
+RedVault AI interface
+
+
+22. package.json
+---------------
+
+package.json belongs to the React frontend.
+
+It contains the frontend dependencies and scripts.
+
+For example:
+
+React
+Vite
+Axios
+
+It also contains commands such as:
+
+npm run dev
+
+which starts the Vite development server.
+
+
+23. requirements.txt
+--------------------
+
+requirements.txt belongs to the Python backend.
+
+It lists the Python libraries required by the project.
+
+Examples include:
+
+FastAPI
+Uvicorn
+ChromaDB
+Sentence Transformers
+Gemini library
+python-dotenv
+PDF processing libraries
+
+When another computer wants to run the backend, these dependencies can be installed from this file.
+
+
+24. .env
+--------
+
+.env is a normal environment-variable file.
+
+It stores secret values such as:
+
+GEMINI_API_KEY=...
+
+The API key should not be placed directly inside the Python source code.
+
+The application loads the key using python-dotenv.
+
+The .env file should not be uploaded to GitHub.
+
+We use .gitignore to prevent secrets and unnecessary files from being uploaded.
+
+
+25. uploads/
+------------
+
+uploads/ is where uploaded PDFs are saved.
+
+For example:
+
+uploads/
+ └── Alexander_Taylor.pdf
+
+The RAG pipeline reads the PDF from this location.
+
+
+26. BACKEND VS FRONTEND
+-----------------------
+
+Frontend:
+
+The part the user sees.
+
+It is built with:
+
+React + Vite
+
+It contains:
+
+Upload UI
+Question input
+Send button
+Answer display
+
+
+Backend:
+
+The part the user does not directly see.
+
+It is built with:
+
+Python + FastAPI
+
+It contains:
+
+File processing
+PDF extraction
+Chunking
+Embeddings
+ChromaDB
+Retrieval
+Gemini
+
+
+27. LOCAL DEVELOPMENT
+---------------------
+
+We run the backend with:
+
+uvicorn app.main:app --reload
+
+The backend runs at:
+
+http://127.0.0.1:8000
+
+FastAPI documentation is available at:
+
+http://127.0.0.1:8000/docs
+
+We run the frontend with:
+
+npm run dev
+
+Vite runs the frontend at:
+
+http://localhost:5173
+
+
+28. WHY WE HAVE TWO SERVERS
+---------------------------
+
+The frontend and backend are separate applications.
+
+Frontend:
+
+localhost:5173
+
+Backend:
+
+127.0.0.1:8000
+
+The frontend communicates with the backend through HTTP requests.
+
+For example:
+
+Frontend
+localhost:5173
+      ↓
+Axios
+      ↓
+Backend
+127.0.0.1:8000
+      ↓
+RAG
+
+
+29. COMPLETE ARCHITECTURE
+-------------------------
+
+                    USER
+                      |
+                      v
+              REACT FRONTEND
+                  App.jsx
+                      |
+                    Axios
+                      |
+                      v
+                FASTAPI BACKEND
+                      |
+             +--------+--------+
+             |                 |
+             v                 v
+          /upload            /chat
+             |                 |
+             v                 v
+      upload_service       retrieval
+             |                 |
+             v                 v
+    document_service       ChromaDB
+             |                 |
+             v                 |
+         chunking              |
+             |                 |
+             v                 |
+        embeddings             |
+             |                 |
+             v                 |
+         ChromaDB <------------+
+                               |
+                               v
+                         Relevant Chunks
+                               |
+                               v
+                         Gemini Service
+                               |
+                               v
+                             Gemini
+                               |
+                               v
+                            Answer
+                               |
+                               v
+                         FastAPI Response
+                               |
+                               v
+                         React Frontend
+                               |
+                               v
+                              USER
+
+
+30. THE MOST IMPORTANT CONCEPT
+------------------------------
+
+The project is NOT simply:
+
+PDF → Gemini → Answer
+
+It is:
+
+PDF
+ ↓
+Extract text
+ ↓
+Chunks
+ ↓
+Embeddings
+ ↓
+ChromaDB
+ ↓
+Question
+ ↓
+Question embedding
+ ↓
+Retrieve relevant chunks
+ ↓
+Question + relevant chunks
+ ↓
+Gemini
+ ↓
+Answer
+
+
+31. WHAT EACH TECHNOLOGY DOES
+-----------------------------
+
+React:
+Builds the user interface.
+
+Vite:
+Runs/builds the React frontend.
+
+Axios:
+Connects React to FastAPI.
+
+FastAPI:
+Creates the backend API.
+
+Uvicorn:
+Runs the FastAPI server.
+
+PDF processing:
+Extracts text from uploaded PDFs.
+
+Chunking:
+Splits large text into smaller pieces.
+
+Sentence Transformers:
+Creates embeddings from text.
+
+Embeddings:
+Represent the meaning of text as vectors.
+
+ChromaDB:
+Stores and searches vectors.
+
+Retrieval:
+Finds the most relevant chunks.
+
+Gemini:
+Generates a natural-language answer using the retrieved information.
+
+python-dotenv:
+Loads secret environment variables from .env.
+
+
+32. SIMPLE EXAMPLE
+------------------
+
+Imagine the PDF says:
+
+"Alexander Taylor has 9 years of experience in data science. He has 3 years of leadership experience. He worked as a Data Scientist and later became a Data Science Team Lead."
+
+
+The user asks:
+
+"How much experience does Alexander have?"
+
+
+The system does:
+
+1. Extract the PDF text.
+
+2. Split it into chunks.
+
+3. Convert chunks into embeddings.
+
+4. Store them in ChromaDB.
+
+5. Convert the question into an embedding.
+
+6. Search ChromaDB.
+
+7. Retrieve the relevant chunk containing the experience information.
+
+8. Send the question and relevant chunk to Gemini.
+
+9. Gemini generates:
+
+"Alexander Taylor has 9 years of experience in data science, including 3 years of leadership experience."
+
+10. React displays the answer.
+
+
+33. FINAL SUMMARY
+-----------------
+
+RedVault AI has two main sides:
+
+FRONTEND:
+React + Vite + Axios
+
+BACKEND:
+FastAPI + RAG + ChromaDB + Gemini
+
+The frontend allows the user to upload a PDF and ask questions.
+
+The backend receives the PDF, extracts its text, splits it into chunks, creates embeddings, and stores them in ChromaDB.
+
+When the user asks a question, the backend converts the question into an embedding and searches ChromaDB for the most relevant chunks.
+
+Those chunks are then given to Gemini together with the question.
+
+Gemini generates a natural-language answer based on the retrieved information.
+
+The backend returns the answer to React, and React displays it to the user.
+
+The most important division to remember is:
+
+React = User Interface
+
+FastAPI = Backend/API
+
+PDF Service = Extract Text
+
+Chunking = Split Text
+
+Embeddings = Convert Meaning to Vectors
+
+ChromaDB = Store and Search Vectors
+
+Retrieval = Find Relevant Information
+
+Gemini = Generate the Final Answer
+
+Axios = Connect Frontend and Backend
+
+Uvicorn = Run FastAPI
+
+
+THE COMPLETE PROJECT IN ONE LINE:
+
+PDF → Text → Chunks → Embeddings → ChromaDB → Question → Retrieval → Relevant Chunks → Gemini → Answer → React → User
