@@ -7,3 +7,4 @@ pypdf
 PyMuPDF
 google-genai
 python-multipart
+langchain-text-splitters

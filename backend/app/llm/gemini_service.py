@@ -1,16 +1,12 @@
 import os
-
 from dotenv import load_dotenv
 from google import genai
 
 # Load environment variables
 load_dotenv()
 
-# Configure Gemini
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-
-# Load model
-model = genai.GenerativeModel("gemini-2.5-flash")
+# Initialize Client (automatically reads GEMINI_API_KEY from environment)
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 
 def ask_gemini(question: str, documents: list[str]) -> str:
@@ -34,6 +30,9 @@ Question:
 {question}
 """
 
-    response = model.generate_content(prompt)
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=prompt,
+    )
 
     return response.text
