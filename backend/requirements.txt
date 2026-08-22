@@ -10,4 +10,4 @@ PyMuPDF
 google-genai
 python-multipart
 langchain-text-splitters
-torch--index-url https://download.pytorch.org/whl/cpu
+torch --index-url https://download.pytorch.org/whl/cpu
