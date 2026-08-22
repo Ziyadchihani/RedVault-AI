@@ -1,0 +1,18 @@
+Retrieval-Augmented Generation
+
+نقسمها إلى جزئين:
+
+Retrieval = الاسترجاع
+
+النظام يبحث داخل الـPDF عن الأجزاء المرتبطة بالسؤال.
+
+Generation = التوليد
+
+Gemini يأخذ الأجزاء التي وجدناها ويكتب منها إجابة طبيعية.
+
+Gemini ليس هو الذي يبحث داخل الـPDF بالكامل.
+
+نحن نبحث أولًا باستخدام الـembeddings + ChromaDB، ثم نعطي Gemini النتائج المهمة.
+
+RedVault AI is a Retrieval-Augmented Generation (RAG) application that allows users to upload a PDF and ask questions about its content. The React frontend provides the user interface where the user uploads the PDF and asks questions, while FastAPI works as the backend that receives the requests and connects all the components. When a PDF is uploaded, the system extracts its text, splits the text into smaller chunks, converts each chunk into a numerical vector called an embedding using Sentence Transformers, and stores these embeddings in ChromaDB, which is a vector database. When the user asks a question, the question is also converted into an embedding, and ChromaDB searches for the chunks that are most semantically similar to the question. These relevant chunks are then sent together with the user's question to the Gemini API. Gemini does not search the whole PDF itself; instead, it uses the relevant information retrieved by the RAG system to generate a clear, natural-language answer. Finally, FastAPI sends the answer back to the React frontend, where it is displayed to the user. The main technologies used in the project are React for the frontend, FastAPI for the backend and APIs, PDF processing for extracting text, Sentence Transformers for embeddings, ChromaDB for vector storage and similarity search, Gemini for generating answers, and Axios for communication between the frontend and backend.
+

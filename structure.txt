@@ -1,0 +1,136 @@
+RAG/
+│
+├── backend/
+│   │
+│   ├── app/
+│   │   │
+│   │   ├── main.py
+│   │   │
+│   │   ├── api/
+│   │   │   ├── upload.py
+│   │   │   └── chat.py
+│   │   │
+│   │   ├── services/
+│   │   │   ├── upload_service.py
+│   │   │   └── document_service.py
+│   │   │
+│   │   ├── rag/
+│   │   │   ├── pipeline.py
+│   │   │   ├── chunking.py
+│   │   │   ├── embeddings.py
+│   │   │   ├── vector_store.py
+│   │   │   └── retrieval.py
+│   │   │
+│   │   └── llm/
+│   │       └── gemini_service.py
+│   │
+│   ├── uploads/
+│   │
+│   ├── .env
+│   └── requirements.txt
+│
+└── frontend/
+    │
+    ├── src/
+    │   ├── App.jsx
+    │   └── main.jsx
+    │
+    ├── public/
+    │
+    └── package.json
+
+
+
+backend/
+
+Job: Contains everything related to the server, RAG system, database, and Gemini.
+
+backend/app/
+
+Job: Contains the actual Python application code.
+
+backend/app/main.py
+
+Job: Creates and starts the FastAPI application and connects the /upload and /chat routes.
+
+backend/app/api/
+
+Files:
+
+upload.py → Handles the POST /upload endpoint and receives uploaded PDFs.
+chat.py → Handles the POST /chat endpoint and receives the user's questions.
+
+Job of the folder: Contains the API endpoints that the React frontend communicates with.
+
+backend/app/services/
+
+Files:
+
+upload_service.py → Validates and saves uploaded files and starts document processing.
+document_service.py → Extracts text from PDF files.
+
+Job of the folder: Contains general services used by the API.
+
+backend/app/rag/
+
+Files:
+
+pipeline.py → Connects the document-processing steps together.
+chunking.py → Splits extracted PDF text into smaller chunks.
+embeddings.py → Converts text chunks into numerical embeddings/vectors.
+vector_store.py → Stores embeddings in ChromaDB and manages the vector database.
+retrieval.py → Searches ChromaDB to find the chunks most relevant to the user's question.
+
+Job of the folder: Contains the main RAG system.
+
+backend/app/llm/
+
+Files:
+
+gemini_service.py → Sends the user's question and retrieved chunks to Gemini and receives the generated answer.
+
+Job of the folder: Handles communication with the Large Language Model.
+
+backend/uploads/
+
+Job: Stores the PDF files uploaded by the user.
+
+Example:
+
+uploads/
+└── Alexander_Taylor.pdf
+backend/.env
+
+Job: Stores secret environment variables such as the Gemini API key.
+
+Example:
+
+GEMINI_API_KEY=your_api_key
+
+This file should not be uploaded to GitHub.
+
+backend/requirements.txt
+
+Job: Contains the Python libraries required by the backend, such as FastAPI, ChromaDB, Sentence Transformers, Gemini, and python-dotenv.
+
+Frontend
+frontend/
+
+Job: Contains the website/interface that the user interacts with.
+
+frontend/src/
+
+Files:
+
+App.jsx → Main React interface. Contains the PDF upload button, question input, Send button, and AI response area. It also uses Axios to communicate with FastAPI.
+main.jsx → Starts the React application and loads App.jsx.
+
+Job of the folder: Contains the main React source code.
+
+frontend/public/
+
+Job: Contains static files that can be used by the website, such as images or icons.
+
+frontend/package.json
+
+Job: Contains the frontend dependencies and scripts, such as React, Vite, and Axios.
