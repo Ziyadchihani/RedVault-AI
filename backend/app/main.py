@@ -10,7 +10,7 @@ app = FastAPI(title="RedVault AI")
 origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://redvault-ai.vercel.app", 
+    "https://red-vault-ai.vercel.app", 
 ]
 
 # Allow React frontend to access the API
