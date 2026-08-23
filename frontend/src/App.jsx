@@ -30,7 +30,7 @@ function App() {
 
     try {
       const response = await axios.post(
-        "https://redvault-ai-backend.onrender.com/upload,
+        "https://redvault-ai-backend.onrender.com/upload",
         formData,
         {
           headers: {
