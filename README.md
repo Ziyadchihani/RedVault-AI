@@ -139,3 +139,49 @@ RAG/
 │
 ├── .gitignore
 ├── README.md
+
+
+## How to Run
+
+### 1. Backend
+
+Open a terminal:
+
+cd backend
+
+Activate the Python environment and install dependencies:
+
+pip install -r requirements.txt
+
+Start the FastAPI server:
+
+uvicorn app.main:app --reload
+
+Backend will run at:
+http://127.0.0.1:8000
+
+### 2. Frontend
+
+Open a second terminal:
+
+cd frontend
+
+Install dependencies:
+
+npm install
+
+Start the frontend:
+
+npm run dev
+
+The website will run at:
+http://localhost:5173
+
+### 3. Usage
+
+1. Open the frontend website.
+2. Upload a PDF document.
+3. Wait for the upload confirmation.
+4. Enter a question about the uploaded document.
+5. Click "Send".
+6. RedVault AI retrieves relevant information from the document and uses the LLM to generate a natural-language answer.
