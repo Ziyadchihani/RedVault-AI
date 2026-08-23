@@ -1,13 +1,13 @@
-from pathlib import Path
+import os
 import shutil
-
+from pathlib import Path
 from fastapi import HTTPException, UploadFile
-
 from app.rag.pipeline import process_document
 
-# Folder where uploaded files will be stored
-UPLOAD_FOLDER = Path("uploads")
-UPLOAD_FOLDER.mkdir(exist_ok=True)
+# استخدام /tmp المسموح بالكتابة فيه داخل بيئات السحاب مثل Render
+BASE_DIR = Path("/tmp") if os.name != "nt" else Path(".")
+UPLOAD_FOLDER = BASE_DIR / "uploads"
+UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
 
 # Allowed file extensions
 ALLOWED_EXTENSIONS = {".pdf", ".docx"}
@@ -17,7 +17,6 @@ def save_uploaded_file(file: UploadFile) -> str:
     """
     Validate the uploaded file and save it to the uploads folder.
     """
-
     extension = Path(file.filename).suffix.lower()
 
     if extension not in ALLOWED_EXTENSIONS:
