@@ -139,6 +139,4 @@ RAG/
 │
 ├── .gitignore
 ├── README.md
-├── explain.txt
-├── structure.txt
-└── code_explantion.txt
+
