@@ -30,7 +30,7 @@ function App() {
 
     try {
       const response = await axios.post(
-        "http://127.0.0.1:8000/upload",
+        "https://redvault-ai-backend.onrender.com/upload,
         formData,
         {
           headers: {
@@ -57,7 +57,7 @@ function App() {
 
     try {
       const response = await axios.post(
-        "http://127.0.0.1:8000/chat",
+        "https://redvault-ai-backend.onrender.com/chat",
         {
           question: question,
         }
