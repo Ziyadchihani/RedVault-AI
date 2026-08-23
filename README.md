@@ -1,3 +1,7 @@
+
+
+
+
 # RedVault AI
 
 RedVault AI is a Retrieval-Augmented Generation (RAG) application that allows users to upload PDF documents and ask questions about their content.
@@ -12,6 +16,10 @@ The project consists of two main parts:
 - Backend: Python + FastAPI
 
 The backend contains the complete RAG pipeline:
+
+
+Uploading Screen Recording 2026-08-23 055447.mp4…
+
 
 PDF → Text Extraction → Chunking → Embeddings → ChromaDB → Retrieval → Gemini → Answer
 
