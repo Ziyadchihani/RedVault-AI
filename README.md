@@ -73,7 +73,7 @@ The answer is returned through FastAPI and displayed in the React frontend.
 
 <br>
 
-## Demo to watch how its
+## Demo to watch how it looks like
 
 [![Watch the Demo](https://img.youtube.com/vi/WwHwAEQEZTk/0.jpg)](https://www.youtube.com/watch?v=WwHwAEQEZTk)
 
