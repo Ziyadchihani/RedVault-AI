@@ -1,7 +1,10 @@
 import uuid
 import chromadb
 
-client = chromadb.PersistentClient(path="./chroma_db")
+BASE_DIR = Path("/tmp") if os.name != "nt" else Path(".")
+CHROMA_PATH = BASE_DIR / "chroma_db"
+
+client = chromadb.PersistentClient(path=str(CHROMA_PATH))
 
 collection = client.get_or_create_collection(
     name="documents"
