@@ -139,7 +139,7 @@ RAG/
 │
 ├── .gitignore
 ├── README.md
-...
+..
 
 
 ## How to Run
