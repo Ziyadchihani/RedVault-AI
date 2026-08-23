@@ -6,17 +6,9 @@ from app.api.chat import router as chat_router
 
 app = FastAPI(title="RedVault AI")
 
-# Naming allowed origins clearly for local development and production
-origins = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "https://red-vault-ai.vercel.app", 
-]
-
-# Allow React frontend to access the API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],  # السماح للجميع مؤقتاً للتأكد
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
