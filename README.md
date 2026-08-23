@@ -71,6 +71,7 @@ Gemini generates a natural-language answer using the retrieved document informat
 
 The answer is returned through FastAPI and displayed in the React frontend.
 
+## Demo to watch how its
 
 [![Watch the Demo](https://img.youtube.com/vi/WwHwAEQEZTk/0.jpg)](https://www.youtube.com/watch?v=WwHwAEQEZTk)
 
