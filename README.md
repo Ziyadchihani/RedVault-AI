@@ -97,6 +97,8 @@ The answer is returned through FastAPI and displayed in the React frontend.
 
 ## Project Structure
 
+## Project Structure
+
 ```text
 RAG/
 │
@@ -137,7 +139,7 @@ RAG/
 │   ├── package.json
 │   └── vite.config.js
 │
-├──.gitignore
+├── .gitignore
 └── README.md
 
 
